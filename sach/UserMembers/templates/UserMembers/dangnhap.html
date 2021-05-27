@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dang nhap thanh vien</title>
+</head>
+<body>
+    <form action="{% url 'UserMembers:dangnhap' %}" method="post">
+       {% csrf_token %}
+        {{lF.as_p}}
+        <input type="submit">
+    </form>
+</body>
+</html>
