@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dang ky thanh gnhap</title>
+    <title>Dang ky thanh nhap</title>
 </head>
 <body>
-    <form action="{% url 'UserMembers:dangky' %}" method="post">
+    <form action="{% url 'UserMembers:dangky' %}" method="POST">
         {% csrf_token %}
+<!--        {{form.as_p}}-->
         {{rF.as_p}}
         <input type="submit">
     </form>

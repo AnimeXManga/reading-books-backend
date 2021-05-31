@@ -1,16 +1,15 @@
-
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-
-from .models import Sach, Chuong
-from .serializer import SachSerializer, ChuongSerializer
-
+from django.shortcuts import render,  get_object_or_404, HttpResponseRedirect
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .models import Sach, Chuong, Danhmuc, Theloai, Comment
+from .serializer import SachSerializer, ChuongSerializer, DanhmucSerializer, TheloaiSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.shortcuts import render
+from .forms import CommentForm
+from rest_framework import viewsets
+
 
 # Create your views here.
 """
@@ -121,6 +120,14 @@ def apiOverview(request):
 		'List-Chuong': '/api-chuong-list/',
 		'DetailView-Chuong': '/api-chuong-detail/<str:pk>/',
 		'Delete-Chuong': '/api-chuong-delete/<str:pk>/',
+
+		'List-DanhMuc': '/api-danhmuc-list/',
+		'DetailView-DanhMuc': '/api-danhmuc-detail/<str:pk>/',
+		'Delete-DanhMuc': '/api-danhmuc-delete/<str:pk>/',
+
+        'List-Theloai': '/api-theloai-list/',
+		'DetailView-Theloai': '/api-theloai-detail/<str:pk>/',
+		'Delete-Theloai': '/api-theloai-delete/<str:pk>/',
 		}
 	return Response(api_urls)
 
@@ -167,4 +174,118 @@ def taskDeleteChuong(request, pk):
 	return Response('Item succsesfully delete!')
 
 
+@api_view(['GET'])
+def taskListDanhmuc(request):
+	tasks = Danhmuc.objects.all().order_by('id')
+	serializer = DanhmucSerializer(tasks, many=True)
 
+	return Response(serializer.data)
+
+@api_view(['GET'])
+def taskDetailDanhmuc(request, pk):
+	tasks = Danhmuc.objects.get(id=pk)
+	serializer = DanhmucSerializer(tasks, many=False)
+
+	return Response(serializer.data)
+
+@api_view(['DELETE'])
+def taskDeleteDanhmuc(request, pk):
+	task = Danhmuc.objects.get(id=pk)
+	task.delete()
+
+	return Response('Item succsesfully delete!')
+
+
+@api_view(['GET'])
+def taskListTheloai(request):
+	tasks = Theloai.objects.all().order_by('id')
+	serializer = TheloaiSerializer(tasks, many=True)
+
+	return Response(serializer.data)
+
+@api_view(['GET'])
+def taskDetailTheloai(request, pk):
+	tasks = Theloai.objects.get(id=pk)
+	serializer = TheloaiSerializer(tasks, many=False)
+
+	return Response(serializer.data)
+
+@api_view(['DELETE'])
+def taskDeleteTheloai(request, pk):
+	task = Theloai.objects.get(id=pk)
+	task.delete()
+
+	return Response('Item succsesfully delete!')
+
+def post_detail(request, pk):
+    template_name = 'post_detail.html'
+    post = get_object_or_404(Chuong, pk=pk)
+    comments = post.comments.filter(active=True)
+    new_comment = None
+    # Comment posted
+    if request.method == 'POST':
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+
+            # Create Comment object but don't save to database yet
+            new_comment = comment_form.save(commit=False)
+            # Assign the current post to the comment
+            new_comment.post = post
+            # Save the comment to the database
+            new_comment.save()
+    else:
+        comment_form = CommentForm()
+
+    return render(request,"post_detail.html", {'post': post,
+                                           'comments': comments,
+                                           'new_comment': new_comment,
+                                           'comment_form': comment_form})
+
+
+class SachDanhmucViewset(viewsets.ModelViewSet):
+    serializer_class = SachSerializer
+
+    def get_queryset(self):
+        sach_s = Sach.objects.all()
+        return sach_s
+
+    def retrieve(self, request, *args, **kwargs):
+         params = kwargs
+         print(params['pk'])
+         params_list = params['pk'].split('-')
+         sachs = Sach.objects.filter(
+             danhmuc=params_list[0])
+         serializer = SachSerializer(sachs, many=True)
+         return Response(serializer.data)
+
+class SachTheloaiViewset(viewsets.ModelViewSet):
+    serializer_class = SachSerializer
+
+    def get_queryset(self):
+        sach_s = Sach.objects.all()
+        return sach_s
+
+    def retrieve(self, request, *args, **kwargs):
+         params = kwargs
+         print(params['pk'])
+         params_list = params['pk'].split('-')
+         sachs = Sach.objects.filter(
+             theloai=params_list[0])
+         serializer = SachSerializer(sachs, many=True)
+         return Response(serializer.data)
+
+class ChuongViewset(viewsets.ModelViewSet):
+    serializer_class = ChuongSerializer
+
+    def get_queryset(self):
+        sach_s = Chuong.objects.all()
+        return sach_s
+
+    def retrieve(self, request, *args, **kwargs):
+         params = kwargs
+         print(params['pk'])
+         params_list = params['pk'].split('-')
+         sachs = Chuong.objects.filter(
+             tieude=params_list[0])
+         serializer = ChuongSerializer(sachs, many=True)
+         return Response(serializer.data)

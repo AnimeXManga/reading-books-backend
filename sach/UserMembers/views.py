@@ -4,6 +4,7 @@ from django.views import View
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
 import json
 
 
@@ -16,16 +17,17 @@ class DangkyThanhvien(View):
         body = request.body.decode('utf-8')
         jsonbody = json.loads(body)
 
+        print(jsonbody)
+
         username = jsonbody['username']
         email = jsonbody['email']
         password = jsonbody['password']
 
-        print(username, email, password)
 
-
-        user = User.objects.create_user(username=username, email=email, password=password)
+        user = User.objects.create_user(username, email, password)
         user.save()
-        return Response('Create user success')
+        return JsonResponse({'message': "Dang ky thanh cong", 'status': 200})
+        # return HttpResponse('Login user success')
 
 
 class DangnhapThanhvien(View):
@@ -44,6 +46,6 @@ class DangnhapThanhvien(View):
 
         if user is not None:
             login(request, user)
-            return HttpResponse('Login user success')
+            return JsonResponse({'message': "Đăng nhập thành công", 'status': 200})
         else:
-            return HttpResponse('Login user fail')
+            return JsonResponse({'message': "Đăng nhập không thành công", 'status': 200})

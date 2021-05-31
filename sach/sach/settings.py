@@ -27,6 +27,17 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = (
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+)
 CORS_ALLOW_CREDENTIALS = True
 PREPEND_WWW = False
 
@@ -45,6 +56,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'image',
     'Accounts',
+    'crispy_forms',
 ]
 
 
@@ -64,7 +76,7 @@ ROOT_URLCONF = 'sach.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -86,7 +98,7 @@ WSGI_APPLICATION = 'sach.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'QuanlySach',
+        'NAME': 'QuanlySachDb',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': 'localhost',
