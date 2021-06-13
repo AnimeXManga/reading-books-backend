@@ -1,6 +1,6 @@
 from rest_framework import serializers
-
-from .models import Sach, Chuong, Danhmuc, Theloai
+from django.db.models import fields
+from .models import Sach, Chuong, Danhmuc, Theloai, Comment
 
 class SachSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,3 +23,8 @@ class TheloaiSerializer(serializers.ModelSerializer):
     class Meta:
         model = Theloai
         fields = ('id', 'thloai')
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('id','post','author','body','date')

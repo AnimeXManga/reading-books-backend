@@ -43,9 +43,17 @@ class DangnhapThanhvien(View):
         password = jsonbody['password']
 
         user = authenticate(request, username=username, password=password)
+        print(user)
 
         if user is not None:
             login(request, user)
-            return JsonResponse({'message': "Đăng nhập thành công", 'status': 200})
+            return JsonResponse({'message': "Đăng nhập thành công", 'status': 200, 'id': '%s' % user.id})
         else:
-            return JsonResponse({'message': "Đăng nhập không thành công", 'status': 200})
+            return JsonResponse({'message': "Đăng nhập không thành công", 'status': 500})
+
+class ViewUser(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return HttpResponse('Bạn vui lòng đăng nhập')
+        else:
+            return HttpResponse('<h1> Đây là View User </h1>')

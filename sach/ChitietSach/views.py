@@ -4,112 +4,18 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from django.shortcuts import render,  get_object_or_404, HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Sach, Chuong, Danhmuc, Theloai, Comment
-from .serializer import SachSerializer, ChuongSerializer, DanhmucSerializer, TheloaiSerializer
+from django.contrib.auth.models import User
+
+from .serializer import SachSerializer, ChuongSerializer, DanhmucSerializer, TheloaiSerializer, CommentSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .forms import CommentForm
 from rest_framework import viewsets
+import json
 
 
 # Create your views here.
-"""
-class ListCreateViewSach(ListCreateAPIView):
-    model = Sach
-    serializer_class = SachSerializer
 
-    def get_queryset(self):
-        return Sach.objects.all()
-
-    def create(self, request, *args, **kwargs):
-        serializer = SachSerializer(data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-
-            return JsonResponse({
-                'message': 'Tao moi sach thanh cong!'
-            }, status=status.HTTP_201_CREATED)
-
-        return JsonResponse({
-            'message': 'Tao moi sach khong thanh cong!'
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UpdateDeleteViewSach(RetrieveUpdateDestroyAPIView):
-    model = Sach
-    serializer_class = SachSerializer
-
-    def put(self, request, *args, **kwargs):
-        sach = get_object_or_404(Sach, id=kwargs.get('pk'))
-        serializer = SachSerializer(sach, data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-
-            return JsonResponse({
-                'message': 'Cap nhat sach thanh cong!'
-            }, status=status.HTTP_200_OK)
-
-        return JsonResponse({
-            'message': 'Cap nhat sach khong thanh!'
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, *args, **kwargs):
-        sach = get_object_or_404(Sach, id=kwargs.get('pk'))
-        sach.delete()
-
-        return JsonResponse({
-            'message': 'Delete Car successful!'
-        }, status=status.HTTP_200_OK)
-
-class ListCreateViewChuong(ListCreateAPIView):
-    model = Chuong
-    serializer_class = ChuongSerializer
-
-    def get_queryset(self):
-        return Chuong.objects.all()
-
-    def create(self, request, *args, **kwargs):
-        serializer = ChuongSerializer(data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-
-            return JsonResponse({
-                'message': 'Tao moi chuong thanh cong!'
-            }, status=status.HTTP_201_CREATED)
-
-        return JsonResponse({
-            'message': 'Tao moi chuong khong thanh cong!'
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-class UpdateDeleteViewChuong(RetrieveUpdateDestroyAPIView):
-    model = Chuong
-    serializer_class = ChuongSerializer
-
-    def put(self, request, *args, **kwargs):
-        chuong = get_object_or_404(Sach, id=kwargs.get('pk'))
-        serializer = ChuongSerializer(data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-
-            return JsonResponse({
-                'message': 'Cap nhat chuong thanh cong!'
-            }, status=status.HTTP_200_OK)
-
-        return JsonResponse({
-            'message': 'Cap nhat chuong khong thanh cong!'
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, *args, **kwargs):
-        chuong = get_object_or_404(Sach, id=kwargs.get('pk'))
-        chuong.delete()
-
-        return JsonResponse({
-            'message': 'Xoa chuong thanh cong!'
-        }, status=status.HTTP_200_OK)
-"""
 @api_view(['GET'])
 def apiOverview(request):
 	api_urls = {
@@ -217,29 +123,23 @@ def taskDeleteTheloai(request, pk):
 
 	return Response('Item succsesfully delete!')
 
-def post_detail(request, pk):
-    template_name = 'post_detail.html'
+
+def post(request, pk):
     post = get_object_or_404(Chuong, pk=pk)
-    comments = post.comments.filter(active=True)
-    new_comment = None
-    # Comment posted
-    if request.method == 'POST':
-        comment_form = CommentForm(data=request.POST)
-        if comment_form.is_valid():
+    form = CommentForm()
+    if request.method == "POST":
+        body = request.body.decode('utf-8')
+        jsonbody = json.loads(body)
 
-            # Create Comment object but don't save to database yet
-            new_comment = comment_form.save(commit=False)
-            # Assign the current post to the comment
-            new_comment.post = post
-            # Save the comment to the database
-            new_comment.save()
-    else:
-        comment_form = CommentForm()
+        tasks = User.objects.get(id=jsonbody['author'])
 
-    return render(request,"post_detail.html", {'post': post,
-                                           'comments': comments,
-                                           'new_comment': new_comment,
-                                           'comment_form': comment_form})
+        form = CommentForm(jsonbody, author=tasks, post=post)
+        if form.is_valid():
+            a = form.save()
+            serializer = CommentSerializer(a, many=False)
+            return JsonResponse({'status': 200, 'data': serializer.data, 'message': "Bình luận thành công"})
+
+    return render(request, "post_detail.html/", {"post": post, "form": form})
 
 
 class SachDanhmucViewset(viewsets.ModelViewSet):
@@ -289,3 +189,21 @@ class ChuongViewset(viewsets.ModelViewSet):
              tieude=params_list[0])
          serializer = ChuongSerializer(sachs, many=True)
          return Response(serializer.data)
+
+class CommentViewset(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        sach_s = Comment.objects.all()
+        return sach_s
+
+    def retrieve(self, request, *args, **kwargs):
+         params = kwargs
+         print(params['pk'])
+         params_list = params['pk'].split('-')
+         sachs = Comment.objects.filter(
+             post=params_list[0]).order_by('-date')
+
+         serializer = CommentSerializer(sachs, many=True)
+         # return JsonResponse(serializer.data, safe = False)
+         return  Response(serializer.data)

@@ -9,6 +9,8 @@ from .models import Profile
 
 
 
+
+
 @api_view(['GET'])
 def apiOverview(request):
 	api_urls = {
@@ -20,21 +22,21 @@ def apiOverview(request):
 
 @api_view(['GET'])
 def taskListAccount(request):
-	tasks = Profile.objects.all().order_by('id')
-	serializer = ProfileSerializer(tasks, many=True)
+	tasks = User.objects.all().order_by('id')
+	serializer = AccountSerializer(tasks, many=True)
 
 	return Response(serializer.data)
 
 @api_view(['GET'])
 def taskDetailAccount(request, pk):
-	tasks = Profile.objects.get(id=pk)
-	serializer = ProfileSerializer(tasks, many=False)
+	tasks = User.objects.get(id=pk)
+	serializer = AccountSerializer(tasks, many=False)
 
 	return Response(serializer.data)
 
 @api_view(['DELETE'])
 def taskDeleteAccount(request, pk):
-	task = Profile.objects.get(id=pk)
+	task = User.objects.get(id=pk)
 	task.delete()
 
 	return Response('Item succsesfully delete!')

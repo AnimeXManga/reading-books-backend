@@ -8,7 +8,7 @@ router = DefaultRouter()
 router.register('sach-danhmuc', views.SachDanhmucViewset, basename='sach-danhmuc')
 router.register('chuong', views.ChuongViewset, basename='chuong')
 router.register('sach-theloai', views.SachTheloaiViewset, basename='sach-theloai')
-
+router.register('chuong-comment', views.CommentViewset, basename='chuong-comment')
 
 urlpatterns = [
 	url('', include(router.urls)),
@@ -30,5 +30,5 @@ urlpatterns = [
 	path('api-theloai-detail/<str:pk>/', views.taskDetailTheloai, name="theloai-detail"),
 	path('api-theloai-delete/<str:pk>/', views.taskDeleteTheloai, name="theloai-delete"),
 
-	path('<int:pk>/', views.post_detail, name='post_detail')
+	path('<int:pk>/', views.post, name='post'),
 ]
